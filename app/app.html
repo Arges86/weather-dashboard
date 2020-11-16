@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Pi Dashboard</title>
+</head>
+
+<body>
+
+  <div id="app" class="container">
+    <div class="title has-text-centered background">Forecast</div>
+    <div id="clock"></div>
+
+    <div class="columns is-size-3-desktop" id="current">
+      <div class="column" id="sunrise"></div>
+      <div class="column" id="currentTemp"></div>
+    </div>
+    <div class="columns is-size-2-desktop" id="5day">
+    </div>
+    <div class="columns is-size-4-desktop mt-3" id="alerts">
+    </div>
+
+    <div class="settings " id="settings" style="display: none;">
+      <div class="title has-text-centered">
+        Welcome!
+      </div>
+      <p>This appears to be your first time running this.</p>
+      <p>Please enter your settings. You will only need to do this on your first startup.</p>
+
+      <div class="columns mt-4">
+        <div class="column is-size-5-desktop">
+          <div class="field">
+            <label class="label required">Enter an 'Open Weather Map' API Key</label>
+            <div class="control">
+              <input class="input" type="text" id="apiKey" placeholder="asdfqwerqwersdafsaf" required>
+            </div>
+          </div>
+          <p class="is-size-6-desktop">If you do not have an API Key already, you can sign up <a target="_blank"
+              href="https://openweathermap.org/appid#signup">here</a> for one</p>
+
+          <div class="field mt-5">
+            <label class="label required">Enter Your Latitude</label>
+            <div class="control">
+              <input class="input" type="text" id="latitude" placeholder="40.785091" required>
+            </div>
+          </div>
+
+          <div class="field mt-5">
+            <label class="label required">Enter Your Longitude</label>
+            <div class="control">
+              <input class="input" type="text" id="longitude" placeholder="-73.968285" required>
+            </div>
+          </div>
+          <p class="is-size-6-desktop">You can find your Latitude and longitude from <a target="_blank"
+              href="https://www.google.com/maps">Google Maps</a> or <a target="_blank"
+              href="https://latitudeandlongitude.org/">here</a></p>
+        </div>
+
+        <div class="column is-size-5-desktop">
+          <p class="mt-5 required">Select which temperature units to report</p>
+          <div class="select is-rounded">
+            <select required id="tempUnits">
+              <option value="" selected disabled>Temperature Units</option>
+              <option value="metric">Celsius</option>
+              <option value="imperial">Fahrenheit</option>
+              <option value="default">Kelvin</option>
+            </select>
+          </div>
+
+          <p class="mt-5 required">Select which Bing market to retrieve background from</p>
+          <div class="select is-rounded">
+            <select required id="bingMarkets">
+              <option value="" selected disabled>Bing Markets</option>
+              <option value="en-AU">Australia</option>
+              <option value="en-CA ">Canada</option>
+              <option value="zh-CN">China</option>
+              <option value="de-DE">Germany</option>
+              <option value="ja-JP">Japan</option>
+              <option value="en-NZ">New Zealand</option>
+              <option value="en-UK">United Kingdom</option>
+              <option value="en-US">US</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <button class="button is-primary is-rounded mt-5" id="saveSettings">Save</button>
+      <div class="has-text-danger" id="error" style="display: none;">Please Enter all values before saving</div>
+    </div>
+
+    <div class="piFooter background" id="backgroundTitle"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
