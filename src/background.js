@@ -36,14 +36,14 @@ app.on("ready", () => {
     width: 1280,
     height: 800,
     transparent: false,
-    frame: true,
+    frame: false,
     webPreferences: {
       nodeIntegration: true,
       enableRemoteModule: true
     }
   });
   mainWindow.setMenu(null);
-  // mainWindow.setFullScreen(true)
+  mainWindow.setFullScreen(true)
 
   mainWindow.loadURL(
     url.format({
@@ -60,6 +60,7 @@ app.on("ready", () => {
 
   if (env.name === "development") {
     mainWindow.openDevTools();
+    mainWindow.setFullScreen(false);
   }
 });
 

@@ -7,18 +7,24 @@ const { Menu, MenuItem } = remote
 let rightClickPosition = null
 
 const menu = new Menu()
-const menuItem = new MenuItem({
+menu.append(new MenuItem({
   label: 'Clear Settings',
   click: () => {
     settings.unsetSync();
-    start();
+    getSettings();
   }
-})
-menu.append(menuItem)
+}));
+menu.append(new MenuItem({
+  label: 'Close Program',
+  click: () => {
+    remote.getCurrentWindow().close()
+  }
+}));
 
+/** Right click menue */
 window.addEventListener('contextmenu', (e) => {
   e.preventDefault()
-  rightClickPosition = {x: e.x, y: e.y}
+  rightClickPosition = { x: e.x, y: e.y }
   menu.popup(remote.getCurrentWindow())
 }, false)
 
@@ -40,25 +46,26 @@ let unit = null;
 
 getTime();
 
-start();
+getSettings();
 
-function start() {
+/** Gets user settings if they exist and then calls main() */
+function getSettings() {
   const userSettings = settings.getSync();
   if (Object.getOwnPropertyNames(userSettings).length !== 5) {
 
     initSettings();
-    
+
   } else {
 
     document.getElementById("settings").style = "display: none;"
-  
+
     bingMarkets = userSettings.bingMarkets;
     tempUnits = userSettings.tempUnits;
     apiKey = userSettings.apiKey;
     latitude = userSettings.latitude;
     longitude = userSettings.longitude;
-  
-    switch(tempUnits) {
+
+    switch (tempUnits) {
       case "metric":
         unit = "&#x2103;";
         break;
@@ -69,11 +76,11 @@ function start() {
         unit = "&#xb0;K";
         break;
     }
-  
+
     main()
-  
+
   }
-  
+
 }
 
 function main() {
@@ -109,8 +116,8 @@ function initSettings() {
       document.getElementById("error").style = "display: block;"
     } else {
       document.getElementById("error").style = "display: none;"
-      settings.setSync({apiKey,tempUnits,bingMarkets, latitude, longitude});
-      start()
+      settings.setSync({ apiKey, tempUnits, bingMarkets, latitude, longitude });
+      getSettings()
     }
   });
 }
@@ -242,7 +249,7 @@ function setForecast(daily) {
 function setAlert(alerts) {
 
   console.log(alerts);
-  
+
   const div = document.getElementById("alerts");
 
   alerts.forEach(element => {
