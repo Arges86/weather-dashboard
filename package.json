@@ -52,7 +52,7 @@
     "babel-loader": "^8.0.0-beta.4",
     "chai": "^4.1.0",
     "css-loader": "^5.0.1",
-    "electron": "^10.1.5",
+    "electron": "^11.0.0",
     "electron-builder": "^22.5.1",
     "electron-mocha": "^9.3.2",
     "eslint": "^7.13.0",

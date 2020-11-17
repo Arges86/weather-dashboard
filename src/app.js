@@ -111,11 +111,11 @@ function initSettings() {
   document.getElementById('alerts').innerHTML = '';
   document.getElementById('settings').style = 'display: block;background-color: #ffffffcf';
 
-  document.getElementById('apiKey').value = userOptions.apiKey;
+  document.getElementById('apiKey').value = userOptions.apiKey || '';
   document.getElementById('tempUnits').value = userOptions.tempUnits || '';
   document.getElementById('bingMarkets').value = userOptions.bingMarkets || '';
-  document.getElementById('latitude').value = userOptions.latitude;
-  document.getElementById('longitude').value = userOptions.longitude;
+  document.getElementById('latitude').value = userOptions.latitude || '';
+  document.getElementById('longitude').value = userOptions.longitude || '';
 
   document.getElementById('saveSettings').addEventListener('click', () => {
     const apiKey = document.getElementById('apiKey').value;
