@@ -39,6 +39,7 @@
   },
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
+    "eslint": "eslint --init",
     "start": "node build/start.js",
     "release": "webpack --config=build/webpack.app.config.js --env production && electron-builder"
   },
@@ -54,6 +55,8 @@
     "electron": "^10.1.5",
     "electron-builder": "^22.5.1",
     "electron-mocha": "^9.3.2",
+    "eslint": "^7.13.0",
+    "eslint-config-google": "^0.14.0",
     "friendly-errors-webpack-plugin": "^1.7.0",
     "mocha": "^8.2.1",
     "source-map-support": "^0.5.6",
