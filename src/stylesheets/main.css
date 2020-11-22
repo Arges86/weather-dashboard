@@ -89,3 +89,15 @@ img {
 .forecastTitle {
   text-decoration: underline;
 }
+.newsColumns {
+  min-width: 300px;
+}
+.titleNews {
+  text-decoration: underline;
+  font-size: large;
+}
+.bodyNews {
+  display: initial;
+  position: absolute;
+  margin-top: 15px;
+}
