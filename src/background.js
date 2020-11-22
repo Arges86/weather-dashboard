@@ -3,19 +3,19 @@
 // It doesn't have any windows which you can see on screen, but we can open
 // window from here.
 
-import path from "path";
-import url from "url";
-import { app, Menu, BrowserWindow, shell } from "electron";
-import { devMenuTemplate } from "./menu/dev_menu_template";
-import { editMenuTemplate } from "./menu/edit_menu_template";
+import path from 'path';
+import url from 'url';
+import {app, Menu, BrowserWindow, shell} from 'electron';
+import {devMenuTemplate} from './menu/dev_menu_template';
+import {session} from 'electron';
 
 // Special module holding environment variables which you declared
 // in config/env_xxx.json file.
-import env from "env";
+import env from 'env';
 
 const setApplicationMenu = () => {
-  const menus = [editMenuTemplate];
-  if (env.name !== "production") {
+  const menus = [];
+  if (env.name !== 'production') {
     menus.push(devMenuTemplate);
   }
   Menu.setApplicationMenu(Menu.buildFromTemplate(menus));
@@ -24,45 +24,53 @@ const setApplicationMenu = () => {
 // Save userData in separate folders for each environment.
 // Thanks to this you can use production and development versions of the app
 // on same machine like those are two separate apps.
-if (env.name !== "production") {
-  const userDataPath = app.getPath("userData");
-  app.setPath("userData", `${userDataPath} (${env.name})`);
+if (env.name !== 'production') {
+  const userDataPath = app.getPath('userData');
+  app.setPath('userData', `${userDataPath} (${env.name})`);
 }
 
-app.on("ready", () => {
+app.on('ready', () => {
   setApplicationMenu();
 
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
-    transparent: false,
-    frame: true,
+    transparent: true,
+    frame: false,
     webPreferences: {
       nodeIntegration: true,
-      enableRemoteModule: true
-    }
+      enableRemoteModule: true,
+      contextIsolation: false,
+    },
   });
   mainWindow.setMenu(null);
-  // mainWindow.setFullScreen(true)
+  mainWindow.setFullScreen(true);
 
   mainWindow.loadURL(
-    url.format({
-      pathname: path.join(__dirname, "app.html"),
-      protocol: "file:",
-      slashes: true
-    })
+      url.format({
+        pathname: path.join(__dirname, 'app.html'),
+        protocol: 'file:',
+        slashes: true,
+      }),
   );
 
-  mainWindow.webContents.on('new-window', function(event, url){
+  session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+    details.requestHeaders['User-Agent'] = 'DashboardAPI';
+    delete details.requestHeaders['Sec-Fetch-Site'];
+    callback({cancel: false, requestHeaders: details.requestHeaders});
+  });
+
+  mainWindow.webContents.on('new-window', function(event, url) {
     event.preventDefault();
     shell.openExternal(url);
   });
 
-  if (env.name === "development") {
+  if (env.name === 'development') {
     mainWindow.openDevTools();
+    mainWindow.setFullScreen(false);
   }
 });
 
-app.on("window-all-closed", () => {
+app.on('window-all-closed', () => {
   app.quit();
 });

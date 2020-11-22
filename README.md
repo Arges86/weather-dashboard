@@ -1,13 +1,24 @@
-# weather-dashboard
+# Weather Dashboard
 
 A Small Dashboard program to show weather information.   
 Best to run in a device like the raspberry pi on an old monitor to display your local weather info.
+
+![app](screenshots/forecast.png)
 
 # Requirements for use
 1. You need to have an API Key from Open Weather Map.
    1. They are free and can be obtained from here: [https://openweathermap.org/appid#signup](https://openweathermap.org/appid#signup)
 1. You need to know your latitude and longitude
    1. They can be found here: [https://latitudeandlongitude.org/](https://latitudeandlongitude.org/)
+1. You need to have an API Key from [News API](https://newsapi.org/)
+   1. Its free and can be obtained from here: [https://newsapi.org/register](https://newsapi.org/register)
+
+# Usage
+Once the required values are retrieved, enter them on the initial settings page and click 'Save'.   
+All values need to be selected before saving.   
+![settings](screenshots/settings.png)   
+If you want to change a setting later on, simply right click anywhere in the app, and select 'Update Settings'.   
+To close the app, right click and select 'Close Program'.   
 
 # Quick start
 
@@ -53,22 +64,6 @@ Environmental variables are done in a bit different way (not via `process.env`).
 import env from "env";
 console.log(env.name);
 ```
-
-## Upgrading Electron version
-
-To do so edit `package.json`:
-```json
-"devDependencies": {
-  "electron": "2.0.2"
-}
-```
-*Side note:* [Electron authors recommend](http://electron.atom.io/docs/tutorial/electron-versioning/) to use fixed version here.
-
-## Adding npm modules to your app
-
-Remember to respect the split between `dependencies` and `devDependencies` in `package.json` file. Your distributable app will contain modules listed in `dependencies` after running the release script.
-
-*Side note:* If the module you want to use in your app is a native one (not pure JavaScript but compiled binary) you should first  run `npm install name_of_npm_module` and then `npm run postinstall` to rebuild the module for Electron. You need to do this once after you're first time installing the module. Later on, the postinstall script will fire automatically with every `npm install`.
 
 # Making a release
 

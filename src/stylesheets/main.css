@@ -5,6 +5,7 @@ body {
   margin: 0;
   padding: 0;
   overflow-y: hidden!important;
+  background-color: rgba(255, 255, 255, 0)!important;
 }
 
 body {
@@ -40,9 +41,13 @@ img {
 
 #clock {
   position: absolute;
-  top: 5px;
-  right: 0px;
+  top: 0px;
+  right: 5px;
   color: white;
+}
+
+.toolbar {
+  -webkit-app-region: drag;
 }
 
 .required:after  {
@@ -82,6 +87,19 @@ img {
 .seperator:last-child {
   margin-right: 0px;
 }
+
 .forecastTitle {
   text-decoration: underline;
+}
+
+.newsColumns {
+  min-width: 300px;
+}
+.titleNews {
+  text-decoration: underline;
+}
+.bodyNews {
+  display: initial;
+  position: absolute;
+  margin-top: 15px;
 }
