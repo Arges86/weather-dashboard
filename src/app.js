@@ -4,23 +4,23 @@ import settings from 'electron-settings';
 const {remote} = require('electron');
 const {Menu, MenuItem} = remote;
 
-let rightClickPosition = null;
-
 /** The object that holds user properties */
 class UserOptions {
   /**
-   * @param {string} apiKey Open Weather Map API Key
+   * @param {string} weatherKey Open Weather Map API Key
+   * @param {string} newsKey News API Key
    * @param {string} tempUnits Units of temperature measurement
    * @param {string} bingMarkets Bing regional market
    * @param {string} latitude User's latitude
    * @param {string} longitude User's longitude
    */
-  constructor(apiKey, tempUnits, bingMarkets, latitude, longitude) {
-    this.apiKey = apiKey;
+  constructor(weatherKey, newsKey, tempUnits, bingMarkets, latitude, longitude) {
+    this.weatherKey = weatherKey;
     this.tempUnits = tempUnits;
     this.bingMarkets = bingMarkets;
     this.latitude = latitude;
     this.longitude = longitude;
+    this.newsKey = newsKey;
   }
   /** Gets UTF-8 Letterlike Symbols*/
   get unit() {
@@ -35,6 +35,9 @@ class UserOptions {
   }
 };
 
+// sets if user is in settings menu or not
+let inSettings = false;
+
 const menu = new Menu();
 menu.append(new MenuItem({
   label: 'Close Program',
@@ -43,11 +46,11 @@ menu.append(new MenuItem({
   },
 }));
 
-/** Right click menue */
+/** Right click menu */
 window.addEventListener('contextmenu', (e) => {
   e.preventDefault();
   // eslint-disable-next-line no-unused-vars
-  rightClickPosition = {x: e.x, y: e.y};
+  const rightClickPosition = {x: e.x, y: e.y};
   menu.popup(remote.getCurrentWindow());
 }, false);
 
@@ -69,20 +72,27 @@ getSettings();
 /** Gets user settings if they exist and then calls main() */
 function getSettings() {
   const temp = settings.getSync();
-  if (Object.getOwnPropertyNames(temp).length !== 5) {
+  console.log(temp);
+  const classLen = Object.keys(userOptions).length;
+  if (Object.getOwnPropertyNames(temp).length !== classLen) {
     initSettings();
   } else {
     document.getElementById('settings').style = 'display: none;';
 
-    menu.insert(0, new MenuItem({
-      label: 'Update Settings',
-      click: () => {
-        initSettings();
-      },
-    }));
-    menu.insert(1, new MenuItem({type: 'separator'}));
+    // if the Update Settings menu item doesn't exist, add it
+    const tempMenu = menu.getMenuItemById();
+    if (tempMenu.label !== 'Update Settings') {
+      menu.insert(0, new MenuItem({
+        label: 'Update Settings',
+        click: () => {
+          initSettings();
+        },
+      }));
+      menu.insert(1, new MenuItem({type: 'separator'}));
+    }
 
-    userOptions = new UserOptions(temp.apiKey, temp.tempUnits, temp.bingMarkets, temp.latitude, temp.longitude);
+    userOptions = new UserOptions(temp.weatherKey, temp.newsKey,
+        temp.tempUnits, temp.bingMarkets, temp.latitude, temp.longitude);
 
     main();
   }
@@ -101,35 +111,47 @@ function main() {
 
   // refreshes weather every hour
   setInterval(getWeather, 1000 * 60 * 60);
+
+  getNews();
+
+  // refreshes news every hour
+  setInterval(getNews, 1000 * 60 * 60);
+
+  // changes screens every minute
+  setInterval(switchScreens, 1000 * 60);
 }
 
 /** Sets the 'settings' to visible and creates event listener */
 function initSettings() {
+  inSettings = true;
   document.getElementById('sunrise').innerHTML = '';
   document.getElementById('currentTemp').innerHTML = '';
   document.getElementById('5day').innerHTML = '';
   document.getElementById('alerts').innerHTML = '';
   document.getElementById('settings').style = 'display: block;background-color: #ffffffcf';
 
-  document.getElementById('apiKey').value = userOptions.apiKey || '';
+  document.getElementById('weatherKey').value = userOptions.weatherKey || '';
+  document.getElementById('newsKey').value = userOptions.newsKey || '';
   document.getElementById('tempUnits').value = userOptions.tempUnits || '';
   document.getElementById('bingMarkets').value = userOptions.bingMarkets || '';
   document.getElementById('latitude').value = userOptions.latitude || '';
   document.getElementById('longitude').value = userOptions.longitude || '';
 
   document.getElementById('saveSettings').addEventListener('click', () => {
-    const apiKey = document.getElementById('apiKey').value;
+    const weatherKey = document.getElementById('weatherKey').value;
+    const newsKey = document.getElementById('newsKey').value;
     const tempUnits = document.getElementById('tempUnits').value;
     const bingMarkets = document.getElementById('bingMarkets').value;
     const latitude = document.getElementById('latitude').value;
     const longitude = document.getElementById('longitude').value;
 
     // eslint-disable-next-line max-len
-    if (apiKey == '' || tempUnits == '' || bingMarkets == '' || latitude == '' || longitude == '') {
+    if (weatherKey == '' || tempUnits == '' || bingMarkets == '' || latitude == '' || longitude == '' || newsKey == '') {
       document.getElementById('error').style = 'display: block;';
     } else {
       document.getElementById('error').style = 'display: none;';
-      settings.setSync({apiKey, tempUnits, bingMarkets, latitude, longitude});
+      settings.setSync({weatherKey, newsKey, tempUnits, bingMarkets, latitude, longitude});
+      inSettings = false;
       getSettings();
     }
   });
@@ -149,6 +171,45 @@ async function setBackground() {
   }
 }
 
+/** Gets the news and updates the page */
+async function getNews() {
+  console.log('Getting news...');
+  const newsColumns = document.getElementById('newsColumns');
+  const headers = new Headers({
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  });
+  const url = `https://newsapi.org/v2/top-headlines?country=us&apiKey=${userOptions.newsKey}`;
+  const results = await fetch(url, {method: 'GET', headers: headers})
+      .then((resp) => {
+        return resp.json();
+      });
+  newsColumns.innerHTML = '';
+  console.log(results);
+
+  results.articles.forEach((element) => {
+    const div = document.createElement('div');
+    div.setAttribute('class', 'column background seperator mt-1 newsColumns');
+    const title = document.createElement('div');
+    title.innerText = element.title.split(' - ')[0];
+    title.setAttribute('class', 'is-size-4 titleNews');
+    div.appendChild(title);
+    if (element.urlToImage) {
+      const img = document.createElement('img');
+      img.src = element.urlToImage;
+      img.style.maxWidth = '36%';
+      div.appendChild(img);
+    }
+    if (element.source.name) {
+      const body = document.createElement('div');
+      body.innerHTML = `<strong>Source:</strong> ${element.source.name}`;
+      body.setAttribute('class', 'bodyNews');
+      div.appendChild(body);
+    }
+    newsColumns.appendChild(div);
+  });
+}
+
 /** Checks if its midnight, and if it is, re-queries Bing */
 function refreshBackground() {
   const hour = new Date().getHours();
@@ -160,13 +221,14 @@ function refreshBackground() {
 
 /** Queries open weather map for weather results */
 async function getWeather() {
+  console.log('Get Weather...');
   const url = new URL('https://api.openweathermap.org/data/2.5/onecall');
   const params = {
     'lat': userOptions.latitude,
     'lon': userOptions.longitude,
     'exclude': 'minutely',
     'units': userOptions.tempUnits,
-    'appid': userOptions.apiKey,
+    'appid': userOptions.weatherKey,
   };
   url.search = new URLSearchParams(params).toString();
   const results = await fetch(url)
@@ -323,7 +385,7 @@ function getCardinalDirection(angle) {
  * @return {string}
  */
 function getDayOfWeek(date, offset) {
-  const weekday = new Array(7);
+  const weekday = new Array(12);
   weekday[0] = 'Sunday';
   weekday[1] = 'Monday';
   weekday[2] = 'Tuesday';
@@ -331,8 +393,29 @@ function getDayOfWeek(date, offset) {
   weekday[4] = 'Thursday';
   weekday[5] = 'Friday';
   weekday[6] = 'Saturday';
+  weekday[7] = 'Sunday';
+  weekday[8] = 'Monday';
+  weekday[9] = 'Tuesday';
+  weekday[10] = 'Wednesday';
+  weekday[11] = 'Thursday';
   if (offset === 0) {
     return 'Today';
   }
   return weekday[date.getDay() + offset];
+}
+
+/** Switches weather and news display */
+function switchScreens() {
+  const weather = document.getElementById('weather');
+  const news = document.getElementById('news');
+
+  if (!inSettings) {
+    if (weather.style.display === 'none') {
+      news.style.display = 'none';
+      weather.style.display = 'inherit';
+    } else {
+      news.style.display = 'inherit';
+      weather.style.display = 'none';
+    }
+  }
 }

@@ -9,18 +9,26 @@
 <body>
 
   <div id="app" class="container">
+   
     <div class="title has-text-centered background toolbar">Forecast</div>
     <div class="is-size-4" id="clock"></div>
 
-    <div class="columns is-size-3-desktop" id="current">
-      <div class="column" id="sunrise"></div>
-      <div class="column" id="currentTemp"></div>
-    </div>
-    <div class="columns is-size-2-desktop" id="5day">
-    </div>
-    <div class="columns is-size-4-desktop mt-3" id="alerts">
-    </div>
+    <div id="weather">
 
+      <div class="columns is-size-3-desktop" id="current">
+        <div class="column" id="sunrise"></div>
+        <div class="column" id="currentTemp"></div>
+      </div>
+      <div class="columns is-size-2-desktop" id="5day">
+      </div>
+      <div class="columns is-size-4-desktop mt-3" id="alerts">
+      </div>
+      <div class="piFooter background" id="backgroundTitle"></div>
+    </div>
+    <div id="news" style="display: none;">
+      <div class="columns" style="flex-wrap: wrap;" id="newsColumns">
+      </div>
+    </div>
     <div class="settings " id="settings" style="display: none;">
       <div class="title has-text-centered">
         Welcome!
@@ -32,7 +40,7 @@
           <div class="field">
             <label class="label required">Enter an 'Open Weather Map' API Key</label>
             <div class="control">
-              <input class="input" type="text" id="apiKey" placeholder="asdfqwerqwersdafsaf" required>
+              <input class="input is-primary" type="text" id="weatherKey" placeholder="asdfqwerqwersdafsaf" required>
             </div>
           </div>
           <p class="is-size-6-desktop">If you do not have an API Key already, you can sign up <a target="_blank"
@@ -41,14 +49,14 @@
           <div class="field mt-5">
             <label class="label required">Enter Your Latitude</label>
             <div class="control">
-              <input class="input" type="text" id="latitude" placeholder="40.785091" required>
+              <input class="input is-info" type="text" id="latitude" placeholder="40.785091" required>
             </div>
           </div>
 
           <div class="field mt-5">
             <label class="label required">Enter Your Longitude</label>
             <div class="control">
-              <input class="input" type="text" id="longitude" placeholder="-73.968285" required>
+              <input class="input is-info" type="text" id="longitude" placeholder="-73.968285" required>
             </div>
           </div>
           <p class="is-size-6-desktop">You can find your Latitude and longitude from <a target="_blank"
@@ -57,6 +65,15 @@
         </div>
 
         <div class="column is-size-5-desktop">
+          <div class="field">
+            <label class="label required">Enter an 'News' API Key</label>
+            <div class="control">
+              <input class="input is-primary" type="text" id="newsKey" placeholder="asdfqwerqwersdafsaf" required>
+            </div>
+          </div>
+          <p class="is-size-6-desktop">If you do not have an API Key already, you can sign up <a target="_blank"
+              href="https://newsapi.org/register">here</a> for one</p>
+
           <p class="mt-5 required">Select which temperature units to report</p>
           <div class="select is-rounded">
             <select required id="tempUnits">
@@ -86,8 +103,6 @@
       <button class="button is-primary is-rounded mt-5" id="saveSettings">Save</button>
       <div class="has-text-danger" id="error" style="display: none;">Please Enter all values before saving</div>
     </div>
-
-    <div class="piFooter background" id="backgroundTitle"></div>
   </div>
 
   <script src="app.js"></script>

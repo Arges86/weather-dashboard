@@ -7,6 +7,7 @@ import path from 'path';
 import url from 'url';
 import {app, Menu, BrowserWindow, shell} from 'electron';
 import {devMenuTemplate} from './menu/dev_menu_template';
+import {session} from 'electron';
 
 // Special module holding environment variables which you declared
 // in config/env_xxx.json file.
@@ -52,6 +53,12 @@ app.on('ready', () => {
         slashes: true,
       }),
   );
+
+  session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+    details.requestHeaders['User-Agent'] = 'DashboardAPI';
+    delete details.requestHeaders['Sec-Fetch-Site'];
+    callback({cancel: false, requestHeaders: details.requestHeaders});
+  });
 
   mainWindow.webContents.on('new-window', function(event, url) {
     event.preventDefault();
