@@ -111,6 +111,7 @@ function getSettings() {
   // else initialize the settings menu
   const classLen = Object.keys(userOptions).length;
   if (Object.getOwnPropertyNames(temp).length !== classLen) {
+    document.body.style = 'background-color: rgb(255 255 255)!important;';
     initSettings();
   } else {
     document.getElementById('settings').style = 'display: none;';
@@ -183,7 +184,7 @@ async function setBackground() {
 
     document.getElementById('backgroundTitle').textContent = results.images[0].title;
   } else {
-    document.body.style.backgroundColor = 'rgb(62 62 62)!important';
+    document.body.style = 'background-color: rgb(62 62 62)!important';
   }
 }
 

@@ -10,6 +10,8 @@ Best to run in a device like the raspberry pi on an old monitor to display your 
    1. They are free and can be obtained from here: [https://openweathermap.org/appid#signup](https://openweathermap.org/appid#signup)
 1. You need to know your latitude and longitude
    1. They can be found here: [https://latitudeandlongitude.org/](https://latitudeandlongitude.org/)
+1. You need to have an API Key from [News API](https://newsapi.org/)
+   1. Its free and can be obtained from here: [https://newsapi.org/register](https://newsapi.org/register)
 
 # Usage
 Once the required values are retrieved, enter them on the initial settings page and click 'Save'.   
