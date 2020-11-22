@@ -1,4 +1,4 @@
-# weather-dashboard
+# Weather Dashboard
 
 A Small Dashboard program to show weather information.   
 Best to run in a device like the raspberry pi on an old monitor to display your local weather info.
