@@ -4,8 +4,6 @@ import settings from 'electron-settings';
 const {remote} = require('electron');
 const {Menu, MenuItem} = remote;
 
-// let rightClickPosition = null;
-
 /** The object that holds user properties */
 class UserOptions {
   /**
@@ -37,6 +35,7 @@ class UserOptions {
   }
 };
 
+// sets if user is in settings menu or not
 let inSettings = false;
 
 const menu = new Menu();
@@ -47,7 +46,7 @@ menu.append(new MenuItem({
   },
 }));
 
-/** Right click menue */
+/** Right click menu */
 window.addEventListener('contextmenu', (e) => {
   e.preventDefault();
   // eslint-disable-next-line no-unused-vars
@@ -172,6 +171,7 @@ async function setBackground() {
   }
 }
 
+/** Gets the news and updates the page */
 async function getNews() {
   console.log('Getting news...');
   const newsColumns = document.getElementById('newsColumns');
