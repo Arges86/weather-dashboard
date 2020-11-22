@@ -5,6 +5,7 @@ body {
   margin: 0;
   padding: 0;
   overflow-y: hidden!important;
+  background-color: rgba(255, 255, 255, 0)!important;
 }
 
 body {
@@ -86,15 +87,16 @@ img {
 .seperator:last-child {
   margin-right: 0px;
 }
+
 .forecastTitle {
   text-decoration: underline;
 }
+
 .newsColumns {
   min-width: 300px;
 }
 .titleNews {
   text-decoration: underline;
-  /* font-size: large; */
 }
 .bodyNews {
   display: initial;

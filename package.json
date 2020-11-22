@@ -23,17 +23,25 @@
       "icon": "build/icons/icon.icns"
     },
     "win": {
-      "target": ["nsis", "portable"],
+      "target": [
+        "nsis",
+        "portable"
+      ],
       "icon": "build/icons/icon.ico"
     },
     "linux": {
-      "target": [{
+      "target": [
+        {
           "target": "AppImage",
-          "arch": ["ia32", "armv7l"]
+          "arch": [
+            "ia32",
+            "armv7l"
+          ]
         },
         {
           "target": "snap"
-        }],
+        }
+      ],
       "icon": "build/icons"
     }
   },

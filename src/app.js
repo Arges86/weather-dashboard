@@ -13,14 +13,16 @@ class UserOptions {
    * @param {string} bingMarkets Bing regional market
    * @param {string} latitude User's latitude
    * @param {string} longitude User's longitude
+   * @param {number} cycle Number of minutes to switch screens. Default 2
    */
-  constructor(weatherKey, newsKey, tempUnits, bingMarkets, latitude, longitude) {
+  constructor(weatherKey, newsKey, tempUnits, bingMarkets, latitude, longitude, cycle = 2) {
     this.weatherKey = weatherKey;
     this.tempUnits = tempUnits;
     this.bingMarkets = bingMarkets;
     this.latitude = latitude;
     this.longitude = longitude;
     this.newsKey = newsKey;
+    this.cycle = parseInt(cycle, 10);
   }
   /** Gets UTF-8 Letterlike Symbols*/
   get unit() {
@@ -38,6 +40,17 @@ class UserOptions {
 // sets if user is in settings menu or not
 let inSettings = false;
 
+const timeFormat = {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: 'numeric',
+  hour12: true,
+};
+
+let userOptions = new UserOptions();
+
 const menu = new Menu();
 menu.append(new MenuItem({
   label: 'Close Program',
@@ -54,25 +67,48 @@ window.addEventListener('contextmenu', (e) => {
   menu.popup(remote.getCurrentWindow());
 }, false);
 
-const timeFormat = {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-  hour: 'numeric',
-  minute: 'numeric',
-  hour12: true,
-};
+/** Save button on settings */
+document.getElementById('saveSettings').addEventListener('click', () => {
+  const weatherKey = document.getElementById('weatherKey').value;
+  const newsKey = document.getElementById('newsKey').value;
+  const tempUnits = document.getElementById('tempUnits').value;
+  const bingMarkets = document.getElementById('bingMarkets').value;
+  const latitude = document.getElementById('latitude').value;
+  const longitude = document.getElementById('longitude').value;
+  let cycle = document.getElementById('cycle').value;
+  cycle = parseInt(cycle, 10);
 
-let userOptions = new UserOptions();
+  // if required fields are filled out, save document. Else show error
+  if (weatherKey == '' || tempUnits == '' || bingMarkets == '' || latitude == '' || longitude == '' || newsKey == '') {
+    document.getElementById('error').style = 'display: block;';
+  } else {
+    document.getElementById('error').style = 'display: none;';
+    document.getElementById('weather').style.display = 'inherit';
+    document.getElementById('settings').style.display = 'none';
+    settings.setSync({weatherKey, newsKey, tempUnits, bingMarkets, latitude, longitude, cycle});
+    inSettings = false;
+
+    // reloads page
+    const {getCurrentWindow} = require('electron').remote;
+    getCurrentWindow().reload();
+  }
+});
 
 getTime();
 
 getSettings();
 
+// changes screens every x minutes
+setInterval(switchScreens, 1000 * (60 * userOptions.cycle));
+
 /** Gets user settings if they exist and then calls main() */
 function getSettings() {
   const temp = settings.getSync();
-  console.log(temp);
+  userOptions = new UserOptions(temp.weatherKey, temp.newsKey, temp.tempUnits,
+      temp.bingMarkets, temp.latitude, temp.longitude, temp.cycle);
+
+  // if settings length equals that of UserOptions class, then call main()
+  // else initialize the settings menu
   const classLen = Object.keys(userOptions).length;
   if (Object.getOwnPropertyNames(temp).length !== classLen) {
     initSettings();
@@ -90,9 +126,6 @@ function getSettings() {
       }));
       menu.insert(1, new MenuItem({type: 'separator'}));
     }
-
-    userOptions = new UserOptions(temp.weatherKey, temp.newsKey,
-        temp.tempUnits, temp.bingMarkets, temp.latitude, temp.longitude);
 
     main();
   }
@@ -116,19 +149,18 @@ function main() {
 
   // refreshes news every hour
   setInterval(getNews, 1000 * 60 * 60);
-
-  // changes screens every minute
-  setInterval(switchScreens, 1000 * 60);
 }
 
 /** Sets the 'settings' to visible and creates event listener */
 function initSettings() {
   inSettings = true;
+  document.getElementById('weather').style.display = 'none';
+  document.getElementById('news').style.display = 'none';
   document.getElementById('sunrise').innerHTML = '';
   document.getElementById('currentTemp').innerHTML = '';
   document.getElementById('5day').innerHTML = '';
   document.getElementById('alerts').innerHTML = '';
-  document.getElementById('settings').style = 'display: block;background-color: #ffffffcf';
+  document.getElementById('settings').style = 'display: block;background-color: rgba(255, 255, 255, 0.812)';
 
   document.getElementById('weatherKey').value = userOptions.weatherKey || '';
   document.getElementById('newsKey').value = userOptions.newsKey || '';
@@ -136,25 +168,7 @@ function initSettings() {
   document.getElementById('bingMarkets').value = userOptions.bingMarkets || '';
   document.getElementById('latitude').value = userOptions.latitude || '';
   document.getElementById('longitude').value = userOptions.longitude || '';
-
-  document.getElementById('saveSettings').addEventListener('click', () => {
-    const weatherKey = document.getElementById('weatherKey').value;
-    const newsKey = document.getElementById('newsKey').value;
-    const tempUnits = document.getElementById('tempUnits').value;
-    const bingMarkets = document.getElementById('bingMarkets').value;
-    const latitude = document.getElementById('latitude').value;
-    const longitude = document.getElementById('longitude').value;
-
-    // eslint-disable-next-line max-len
-    if (weatherKey == '' || tempUnits == '' || bingMarkets == '' || latitude == '' || longitude == '' || newsKey == '') {
-      document.getElementById('error').style = 'display: block;';
-    } else {
-      document.getElementById('error').style = 'display: none;';
-      settings.setSync({weatherKey, newsKey, tempUnits, bingMarkets, latitude, longitude});
-      inSettings = false;
-      getSettings();
-    }
-  });
+  document.getElementById('cycle').value = userOptions.cycle;
 }
 
 /** Gets the bing daily wallpaper and sets the document background */
@@ -168,6 +182,8 @@ async function setBackground() {
     document.body.style.backgroundImage = `url("https://www.bing.com/${results.images[0].url}")`;
 
     document.getElementById('backgroundTitle').textContent = results.images[0].title;
+  } else {
+    document.body.style.backgroundColor = 'rgb(62 62 62)!important';
   }
 }
 
@@ -406,9 +422,11 @@ function getDayOfWeek(date, offset) {
 
 /** Switches weather and news display */
 function switchScreens() {
+  console.log('switching screens');
   const weather = document.getElementById('weather');
   const news = document.getElementById('news');
 
+  // if not in the settings menu
   if (!inSettings) {
     if (weather.style.display === 'none') {
       news.style.display = 'none';

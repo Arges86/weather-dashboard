@@ -35,7 +35,7 @@ app.on('ready', () => {
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
-    transparent: false,
+    transparent: true,
     frame: false,
     webPreferences: {
       nodeIntegration: true,
