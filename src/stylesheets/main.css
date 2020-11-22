@@ -94,7 +94,7 @@ img {
 }
 .titleNews {
   text-decoration: underline;
-  font-size: large;
+  /* font-size: large; */
 }
 .bodyNews {
   display: initial;

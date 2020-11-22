@@ -4,7 +4,7 @@ import settings from 'electron-settings';
 const {remote} = require('electron');
 const {Menu, MenuItem} = remote;
 
-let rightClickPosition = null;
+// let rightClickPosition = null;
 
 /** The object that holds user properties */
 class UserOptions {
@@ -37,6 +37,8 @@ class UserOptions {
   }
 };
 
+let inSettings = false;
+
 const menu = new Menu();
 menu.append(new MenuItem({
   label: 'Close Program',
@@ -49,7 +51,7 @@ menu.append(new MenuItem({
 window.addEventListener('contextmenu', (e) => {
   e.preventDefault();
   // eslint-disable-next-line no-unused-vars
-  rightClickPosition = {x: e.x, y: e.y};
+  const rightClickPosition = {x: e.x, y: e.y};
   menu.popup(remote.getCurrentWindow());
 }, false);
 
@@ -78,13 +80,17 @@ function getSettings() {
   } else {
     document.getElementById('settings').style = 'display: none;';
 
-    menu.insert(0, new MenuItem({
-      label: 'Update Settings',
-      click: () => {
-        initSettings();
-      },
-    }));
-    menu.insert(1, new MenuItem({type: 'separator'}));
+    // if the Update Settings menu item doesn't exist, add it
+    const tempMenu = menu.getMenuItemById();
+    if (tempMenu.label !== 'Update Settings') {
+      menu.insert(0, new MenuItem({
+        label: 'Update Settings',
+        click: () => {
+          initSettings();
+        },
+      }));
+      menu.insert(1, new MenuItem({type: 'separator'}));
+    }
 
     userOptions = new UserOptions(temp.weatherKey, temp.newsKey,
         temp.tempUnits, temp.bingMarkets, temp.latitude, temp.longitude);
@@ -118,6 +124,7 @@ function main() {
 
 /** Sets the 'settings' to visible and creates event listener */
 function initSettings() {
+  inSettings = true;
   document.getElementById('sunrise').innerHTML = '';
   document.getElementById('currentTemp').innerHTML = '';
   document.getElementById('5day').innerHTML = '';
@@ -145,6 +152,7 @@ function initSettings() {
     } else {
       document.getElementById('error').style = 'display: none;';
       settings.setSync({weatherKey, newsKey, tempUnits, bingMarkets, latitude, longitude});
+      inSettings = false;
       getSettings();
     }
   });
@@ -171,7 +179,6 @@ async function getNews() {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
   });
-  console.log('News Key: ', userOptions.newsKey);
   const url = `https://newsapi.org/v2/top-headlines?country=us&apiKey=${userOptions.newsKey}`;
   const results = await fetch(url, {method: 'GET', headers: headers})
       .then((resp) => {
@@ -184,8 +191,8 @@ async function getNews() {
     const div = document.createElement('div');
     div.setAttribute('class', 'column background seperator mt-1 newsColumns');
     const title = document.createElement('div');
-    title.innerText = element.title;
-    title.setAttribute('class', 'titleNews');
+    title.innerText = element.title.split(' - ')[0];
+    title.setAttribute('class', 'is-size-4 titleNews');
     div.appendChild(title);
     if (element.urlToImage) {
       const img = document.createElement('img');
@@ -399,15 +406,16 @@ function getDayOfWeek(date, offset) {
 
 /** Switches weather and news display */
 function switchScreens() {
-  console.log('Switching Screens');
   const weather = document.getElementById('weather');
   const news = document.getElementById('news');
 
-  if (weather.style.display === 'none') {
-    news.style.display = 'none';
-    weather.style.display = 'inherit';
-  } else {
-    news.style.display = 'inherit';
-    weather.style.display = 'none';
+  if (!inSettings) {
+    if (weather.style.display === 'none') {
+      news.style.display = 'none';
+      weather.style.display = 'inherit';
+    } else {
+      news.style.display = 'inherit';
+      weather.style.display = 'none';
+    }
   }
 }
