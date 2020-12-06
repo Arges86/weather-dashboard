@@ -15,9 +15,12 @@ Best to run in a device like the raspberry pi on an old monitor to display your 
 
 # Usage
 Once the required values are retrieved, enter them on the initial settings page and click 'Save'.   
+If you don't want to (or can't) connect a keyboard/mouse, go to port 3000 on the device to access a web version of the settings.   
+Ex: [http://raspberrypi:3000](http://raspberrypi:3000)   
 All values need to be selected before saving.   
 ![settings](screenshots/settings.png)   
 If you want to change a setting later on, simply right click anywhere in the app, and select 'Update Settings'.   
+Or re-visit the port 3000 of the device.   
 To close the app, right click and select 'Close Program'.   
 
 # Quick start

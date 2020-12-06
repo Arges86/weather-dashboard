@@ -14,8 +14,12 @@ app.get('/', (req, res) => {
 });
 
 app.get('/data', (req, res) => {
-  const temp = settings.getSync();
-  res.send(temp);
+  try {
+    const temp = settings.getSync();
+    res.send(temp);
+  } catch (error) {
+    res.status(500).contentType('application/json').send({Message: 'Error getting data'});
+  }
 });
 
 app.post('/data', (req, res) => {
