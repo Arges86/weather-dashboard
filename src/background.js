@@ -5,7 +5,7 @@
 
 import path from 'path';
 import url from 'url';
-import {app, Menu, BrowserWindow, shell} from 'electron';
+import {app, Menu, BrowserWindow, shell, powerSaveBlocker} from 'electron';
 import {devMenuTemplate} from './menu/dev_menu_template';
 import {session} from 'electron';
 
@@ -20,6 +20,8 @@ const setApplicationMenu = () => {
   }
   Menu.setApplicationMenu(Menu.buildFromTemplate(menus));
 };
+
+let id = null;
 
 // Save userData in separate folders for each environment.
 // Thanks to this you can use production and development versions of the app
@@ -69,8 +71,10 @@ app.on('ready', () => {
     mainWindow.openDevTools();
     mainWindow.setFullScreen(false);
   }
+  id = powerSaveBlocker.start('prevent-display-sleep');
 });
 
 app.on('window-all-closed', () => {
+  powerSaveBlocker.stop(id);
   app.quit();
 });
