@@ -8,6 +8,11 @@
 </head>
 
 <body>
+  <div class="notification is-primary" id="successnotification" style="display: none;">
+    Settings updated
+  </div>
+  <div class="notification is-danger" id="dangerNotification" style="display: none;">
+  </div>
   <div class="settings " id="settings">
     <div class="title has-text-centered">
       Welcome!
@@ -90,7 +95,7 @@
   </div>
 </body>
 <script>
-  (async() => {
+  (async () => {
     const data = await getData();
     console.log(data);
     document.getElementById('weatherKey').value = data.weatherKey || '';
@@ -102,7 +107,7 @@
     document.getElementById('cycle').value = data.cycle || 2;
   })()
 
-  document.getElementById('saveSettings').addEventListener('click', async() => {
+  document.getElementById('saveSettings').addEventListener('click', async () => {
     console.log('submitting data');
     const weatherKey = document.getElementById('weatherKey').value;
     const newsKey = document.getElementById('newsKey').value;
@@ -113,15 +118,35 @@
     let cycle = document.getElementById('cycle').value;
     cycle = parseInt(cycle, 10);
 
-    if (weatherKey == '' || tempUnits == '' || bingMarkets == '' || latitude == '' || longitude == '' || newsKey == '') {
+    if (weatherKey == '' || tempUnits == '' || bingMarkets == '' || latitude == '' || longitude == '' ||
+      newsKey == '') {
       console.log('showing error');
     } else {
-      const payload = {weatherKey, tempUnits, bingMarkets, latitude, longitude, newsKey, cycle};
+      const payload = {
+        weatherKey,
+        tempUnits,
+        bingMarkets,
+        latitude,
+        longitude,
+        newsKey,
+        cycle
+      };
       try {
         const response = await postData(payload);
         console.log(payload);
+        const notification = document.getElementById('successnotification');
+        notification.style = "display: inherit;";
+        setTimeout(function () {
+          notification.style = "display: none;"
+        }, 3000);
       } catch (error) {
         console.log(error);
+        const notification = document.getElementById('dangerNotification');
+        notification.innerText = error;
+        notification.style = "display: inherit;";
+        setTimeout(function () {
+          notification.style = "display: none;"
+        }, 3000);
       }
     }
   })
@@ -135,11 +160,17 @@
       },
       body: JSON.stringify(data)
     });
-    return response.json();
+    const output = await response.json();
+    if (!response.ok) {
+      throw new Error(output.Message);
+    }
+    return output;
   }
   async function getData() {
     return await fetch(`${window.location}data`)
       .then(response => response.json())
   }
+
 </script>
+
 </html>

@@ -84,8 +84,8 @@ app.on('window-all-closed', () => {
 const newEvent = require('./express.js');
 const userEmitter = newEvent.emitter;
 
+// emites from http server when settings are saved
 userEmitter.on('save-data', (data) => {
-  console.log('Saving user data', data);
   if (data) {
     mainWindow.reload();
   }
