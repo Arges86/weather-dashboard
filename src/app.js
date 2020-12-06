@@ -104,6 +104,7 @@ setInterval(switchScreens, 1000 * (60 * userOptions.cycle));
 /** Gets user settings if they exist and then calls main() */
 function getSettings() {
   const temp = settings.getSync();
+  console.log(temp);
   userOptions = new UserOptions(temp.weatherKey, temp.newsKey, temp.tempUnits,
       temp.bingMarkets, temp.latitude, temp.longitude, temp.cycle);
 

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+  <title>Pi Dashboard</title>
+</head>
+
+<body>
+  <div class="settings " id="settings">
+    <div class="title has-text-centered">
+      Welcome!
+    </div>
+    <p>Please enter your settings. You will only need to do this on your first startup.</p>
+
+    <div class="columns mt-4">
+      <div class="column is-size-5-desktop">
+        <div class="field">
+          <label class="label required">Enter an 'Open Weather Map' API Key</label>
+          <div class="control">
+            <input class="input is-primary" type="text" id="weatherKey" placeholder="asdfqwerqwersdafsaf" required>
+          </div>
+        </div>
+        <p class="is-size-6-desktop">If you do not have an API Key already, you can sign up <a target="_blank"
+            href="https://openweathermap.org/appid#signup">here</a> for one</p>
+
+        <div class="field mt-5">
+          <label class="label required">Enter Your Latitude</label>
+          <div class="control">
+            <input class="input is-info" type="text" id="latitude" placeholder="40.785091" required>
+          </div>
+        </div>
+
+        <div class="field mt-5">
+          <label class="label required">Enter Your Longitude</label>
+          <div class="control">
+            <input class="input is-info" type="text" id="longitude" placeholder="-73.968285" required>
+          </div>
+        </div>
+        <p class="is-size-6-desktop">You can find your Latitude and longitude from <a target="_blank"
+            href="https://www.google.com/maps">Google Maps</a> or <a target="_blank"
+            href="https://latitudeandlongitude.org/">here</a></p>
+      </div>
+
+      <div class="column is-size-5-desktop">
+        <div class="field">
+          <label class="label required">Enter an 'News' API Key</label>
+          <div class="control">
+            <input class="input is-primary" type="text" id="newsKey" placeholder="asdfqwerqwersdafsaf" required>
+          </div>
+        </div>
+        <p class="is-size-6-desktop">If you do not have an API Key already, you can sign up <a target="_blank"
+            href="https://newsapi.org/register">here</a> for one</p>
+
+        <p class="mt-5 required">Select which temperature units to report</p>
+        <div class="select is-rounded">
+          <select required id="tempUnits">
+            <option value="" selected disabled>Temperature Units</option>
+            <option value="metric">Celsius</option>
+            <option value="imperial">Fahrenheit</option>
+            <option value="default">Kelvin</option>
+          </select>
+        </div>
+
+        <p class="mt-5 required">Select which Bing market to retrieve background from</p>
+        <div class="select is-rounded">
+          <select required id="bingMarkets">
+            <option value="" selected disabled>Bing Markets</option>
+            <option value="en-AU">Australia</option>
+            <option value="en-CA ">Canada</option>
+            <option value="zh-CN">China</option>
+            <option value="de-DE">Germany</option>
+            <option value="ja-JP">Japan</option>
+            <option value="en-NZ">New Zealand</option>
+            <option value="en-UK">United Kingdom</option>
+            <option value="en-US">US</option>
+          </select>
+        </div>
+        <p class="mt-5 required">Number of minutes between switching screens</p>
+        <div class="field">
+          <label class="label"></label>
+          <input class="input is-primary" min="1" max="60" type="number" id="cycle" placeholder="5" required
+            style="max-width: 80px;">
+        </div>
+      </div>
+    </div>
+    <button class="button is-primary is-rounded mt-5" id="saveSettings">Save</button>
+    <div class="has-text-danger" id="error" style="display: none;">Please Enter all values before saving</div>
+  </div>
+</body>
+<script>
+  (async() => {
+    const data = await getData();
+    console.log(data);
+    document.getElementById('weatherKey').value = data.weatherKey || '';
+    document.getElementById('newsKey').value = data.newsKey || '';
+    document.getElementById('tempUnits').value = data.tempUnits || '';
+    document.getElementById('bingMarkets').value = data.bingMarkets || '';
+    document.getElementById('latitude').value = data.latitude || '';
+    document.getElementById('longitude').value = data.longitude || '';
+    document.getElementById('cycle').value = data.cycle || 2;
+  })()
+
+  document.getElementById('saveSettings').addEventListener('click', async() => {
+    console.log('submitting data');
+    const weatherKey = document.getElementById('weatherKey').value;
+    const newsKey = document.getElementById('newsKey').value;
+    const tempUnits = document.getElementById('tempUnits').value;
+    const bingMarkets = document.getElementById('bingMarkets').value;
+    const latitude = document.getElementById('latitude').value;
+    const longitude = document.getElementById('longitude').value;
+    let cycle = document.getElementById('cycle').value;
+    cycle = parseInt(cycle, 10);
+
+    if (weatherKey == '' || tempUnits == '' || bingMarkets == '' || latitude == '' || longitude == '' || newsKey == '') {
+      console.log('showing error');
+    } else {
+      const payload = {weatherKey, tempUnits, bingMarkets, latitude, longitude, newsKey, cycle};
+      try {
+        const response = await postData(payload);
+        console.log(payload);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  })
+
+  async function postData(data) {
+    console.log(data);
+    const response = await fetch(`${window.location}data`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+    return response.json();
+  }
+  async function getData() {
+    return await fetch(`${window.location}data`)
+      .then(response => response.json())
+  }
+</script>
+</html>

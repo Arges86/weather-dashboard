@@ -6,6 +6,7 @@
 import path from 'path';
 import url from 'url';
 import {app, Menu, BrowserWindow, shell, powerSaveBlocker} from 'electron';
+
 import {devMenuTemplate} from './menu/dev_menu_template';
 import {session} from 'electron';
 
@@ -22,6 +23,7 @@ const setApplicationMenu = () => {
 };
 
 let id = null;
+let mainWindow = null;
 
 // Save userData in separate folders for each environment.
 // Thanks to this you can use production and development versions of the app
@@ -34,7 +36,7 @@ if (env.name !== 'production') {
 app.on('ready', () => {
   setApplicationMenu();
 
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     transparent: true,
@@ -77,4 +79,14 @@ app.on('ready', () => {
 app.on('window-all-closed', () => {
   powerSaveBlocker.stop(id);
   app.quit();
+});
+
+const newEvent = require('./express.js');
+const userEmitter = newEvent.emitter;
+
+userEmitter.on('save-data', (data) => {
+  console.log('Saving user data', data);
+  if (data) {
+    mainWindow.reload();
+  }
 });
