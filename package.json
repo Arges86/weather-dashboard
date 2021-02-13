@@ -2,7 +2,7 @@
   "name": "weather-dashboard",
   "productName": "Weather Dashboard",
   "description": "Weather and Info Dashboard",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": false,
   "author": "Stephen Thompson",
   "license": "MIT",
@@ -37,9 +37,6 @@
             "x64",
             "armv7l"
           ]
-        },
-        {
-          "target": "snap"
         }
       ],
       "icon": "build/icons"
@@ -49,6 +46,7 @@
     "postinstall": "electron-builder install-app-deps",
     "eslint": "eslint --init",
     "start": "node build/start.js",
+    "prerelease": "rm -rf dist",
     "release": "webpack --config=build/webpack.app.config.js --env production && electron-builder"
   },
   "dependencies": {
@@ -56,24 +54,24 @@
     "express": "^4.17.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.7",
-    "@babel/preset-env": "^7.12.7",
-    "babel-loader": "^8.0.0-beta.4",
-    "chai": "^4.1.0",
-    "css-loader": "^5.0.1",
-    "electron": "^11.0.2",
+    "@babel/core": "^7.12.16",
+    "@babel/preset-env": "^7.12.16",
+    "babel-loader": "^8.2.2",
+    "chai": "^4.3.0",
+    "css-loader": "^5.0.2",
+    "electron": "^11.2.3",
     "electron-builder": "^22.5.1",
-    "electron-mocha": "^9.3.2",
-    "eslint": "^7.14.0",
+    "electron-mocha": "^9.3.3",
+    "eslint": "^7.20.0",
     "eslint-config-google": "^0.14.0",
     "friendly-errors-webpack-plugin": "^1.7.0",
-    "mocha": "^8.2.1",
+    "mocha": "^8.3.0",
     "source-map-support": "^0.5.6",
     "spectron": "^12.0.0",
     "style-loader": "^2.0.0",
-    "webpack": "^5.6.0",
-    "webpack-cli": "^4.2.0",
-    "webpack-merge": "^5.4.0",
+    "webpack": "^5.21.2",
+    "webpack-cli": "^4.5.0",
+    "webpack-merge": "^5.7.3",
     "webpack-node-externals": "^2.5.2"
   }
 }
