@@ -13,6 +13,12 @@ Best to run in a device like the raspberry pi on an old monitor to display your 
 1. You need to have an API Key from [News API](https://newsapi.org/)
    1. Its free and can be obtained from here: [https://newsapi.org/register](https://newsapi.org/register)
 
+# Install
+## Linux
+1. Move the `.AppImage` file to `~/.config/autostart`.   
+1. Set the file's permission to execute.   
+These steps can be taken from the `install.sh` bash file, asuming the AppImage is in the same directory as the shell script.   
+
 # Usage
 Once the required values are retrieved, enter them on the initial settings page and click 'Save'.   
 If you don't want to (or can't) connect a keyboard/mouse, go to port 3000 on the device to access a web version of the settings.   
