@@ -1,9 +1,10 @@
 import path from 'path';
 import url from 'url';
-import {app, Menu, BrowserWindow, shell, powerSaveBlocker} from 'electron';
+import { app, Menu, BrowserWindow, shell, powerSaveBlocker, ipcMain } from 'electron';
+import settings from 'electron-settings';
 
-import {devMenuTemplate} from './menu/dev_menu_template';
-import {session} from 'electron';
+import { devMenuTemplate } from './menu/dev_menu_template';
+import { session } from 'electron';
 
 import env from 'env';
 
@@ -16,6 +17,7 @@ const setApplicationMenu = () => {
 };
 
 let id = null;
+/** @type BrowserWindow */
 let mainWindow = null;
 
 // Save userData in separate folders for each environment.
@@ -36,7 +38,6 @@ app.on('ready', () => {
     frame: false,
     webPreferences: {
       nodeIntegration: true,
-      enableRemoteModule: true,
       contextIsolation: false,
     },
   });
@@ -44,20 +45,20 @@ app.on('ready', () => {
   mainWindow.setFullScreen(true);
 
   mainWindow.loadURL(
-      url.format({
-        pathname: path.join(__dirname, 'app.html'),
-        protocol: 'file:',
-        slashes: true,
-      }),
+    url.format({
+      pathname: path.join(__dirname, 'app.html'),
+      protocol: 'file:',
+      slashes: true,
+    }),
   );
 
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
     details.requestHeaders['User-Agent'] = 'DashboardAPI';
     delete details.requestHeaders['Sec-Fetch-Site'];
-    callback({cancel: false, requestHeaders: details.requestHeaders});
+    callback({ cancel: false, requestHeaders: details.requestHeaders });
   });
 
-  mainWindow.webContents.on('new-window', function(event, url) {
+  mainWindow.webContents.on('new-window', function (event, url) {
     event.preventDefault();
     shell.openExternal(url);
   });
@@ -83,3 +84,36 @@ userEmitter.on('save-data', (data) => {
     mainWindow.reload();
   }
 });
+
+ipcMain.handle("get-settings", async () => {
+  const allSettings = await settings.get();
+  return allSettings;
+});
+
+ipcMain.handle("set-settings", async (event, data) => {
+  settings.setSync(data);
+});
+
+ipcMain.on('show-context-menu', (event) => {
+  const template = [
+    {
+      label: 'Close Program',
+      click: () => {
+        mainWindow.close();
+      },
+    },
+    { type: 'separator' },
+    {
+      label: 'Update Settings',
+      click: () => {
+        event.sender.send('context-menu-command', 'menu-item-1')
+      },
+    }
+  ]
+  const menu = Menu.buildFromTemplate(template)
+  menu.popup(BrowserWindow.fromWebContents(event.sender))
+});
+
+ipcMain.handle('reload-window', () => {
+  mainWindow.reload();
+})

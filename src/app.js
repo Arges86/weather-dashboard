@@ -1,8 +1,6 @@
 import './stylesheets/main.css';
 import './stylesheets/bulma.min.css';
-import settings from 'electron-settings';
-const {remote} = require('electron');
-const {Menu, MenuItem} = remote;
+import { ipcRenderer } from "electron";
 
 /** The object that holds user properties */
 class UserOptions {
@@ -33,9 +31,11 @@ class UserOptions {
         return '&#x2109;';
       case 'default':
         return '&#xb0;K';
+      default:
+        return '&#xb0;K';
     }
   }
-};
+}
 
 // sets if user is in settings menu or not
 let inSettings = false;
@@ -51,24 +51,18 @@ const timeFormat = {
 
 let userOptions = new UserOptions();
 
-const menu = new Menu();
-menu.append(new MenuItem({
-  label: 'Close Program',
-  click: () => {
-    remote.getCurrentWindow().close();
-  },
-}));
-
-/** Right click menu */
 window.addEventListener('contextmenu', (e) => {
-  e.preventDefault();
-  // eslint-disable-next-line no-unused-vars
-  const rightClickPosition = {x: e.x, y: e.y};
-  menu.popup(remote.getCurrentWindow());
-}, false);
+  e.preventDefault()
+  ipcRenderer.send('show-context-menu')
+});
+
+// triggered with 'Update Settings' is clicked
+ipcRenderer.on('context-menu-command', () => {
+  initSettings();
+});
 
 /** Save button on settings */
-document.getElementById('saveSettings').addEventListener('click', () => {
+document.getElementById('saveSettings').addEventListener('click', async () => {
   const weatherKey = document.getElementById('weatherKey').value;
   const newsKey = document.getElementById('newsKey').value;
   const tempUnits = document.getElementById('tempUnits').value;
@@ -85,12 +79,11 @@ document.getElementById('saveSettings').addEventListener('click', () => {
     document.getElementById('error').style = 'display: none;';
     document.getElementById('weather').style.display = 'inherit';
     document.getElementById('settings').style.display = 'none';
-    settings.setSync({weatherKey, newsKey, tempUnits, bingMarkets, latitude, longitude, cycle});
+    await ipcRenderer.invoke("set-settings", { weatherKey, newsKey, tempUnits, bingMarkets, latitude, longitude, cycle });
     inSettings = false;
 
     // reloads page
-    const {getCurrentWindow} = require('electron').remote;
-    getCurrentWindow().reload();
+    ipcRenderer.invoke('reload-window');
   }
 });
 
@@ -102,33 +95,20 @@ getSettings();
 setInterval(switchScreens, 1000 * (60 * userOptions.cycle));
 
 /** Gets user settings if they exist and then calls main() */
-function getSettings() {
-  const temp = settings.getSync();
-  console.log(temp);
+async function getSettings() {
+  const temp = await ipcRenderer.invoke("get-settings");
   userOptions = new UserOptions(temp.weatherKey, temp.newsKey, temp.tempUnits,
-      temp.bingMarkets, temp.latitude, temp.longitude, temp.cycle);
+    temp.bingMarkets, temp.latitude, temp.longitude, temp.cycle);
 
   // if settings length equals that of UserOptions class, then call main()
   // else initialize the settings menu
   const classLen = Object.keys(userOptions).length;
+  console.log(Object.getOwnPropertyNames(temp).length !== classLen)
   if (Object.getOwnPropertyNames(temp).length !== classLen) {
     document.body.style = 'background-color: rgb(255 255 255)!important;';
     initSettings();
   } else {
     document.getElementById('settings').style = 'display: none;';
-
-    // if the Update Settings menu item doesn't exist, add it
-    const tempMenu = menu.getMenuItemById();
-    if (tempMenu.label !== 'Update Settings') {
-      menu.insert(0, new MenuItem({
-        label: 'Update Settings',
-        click: () => {
-          initSettings();
-        },
-      }));
-      menu.insert(1, new MenuItem({type: 'separator'}));
-    }
-
     main();
   }
 }
@@ -176,9 +156,9 @@ function initSettings() {
 /** Gets the bing daily wallpaper and sets the document background */
 async function setBackground() {
   const results = await fetch(`https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=${userOptions.bingMarkets}`)
-      .then((resp) => {
-        return resp.json();
-      });
+    .then((resp) => {
+      return resp.json();
+    });
 
   if (results.images) {
     document.body.style.backgroundImage = `url("https://www.bing.com/${results.images[0].url}")`;
@@ -191,19 +171,17 @@ async function setBackground() {
 
 /** Gets the news and updates the page */
 async function getNews() {
-  console.log('Getting news...');
   const newsColumns = document.getElementById('newsColumns');
   const headers = new Headers({
     'Accept': 'application/json',
     'Content-Type': 'application/json',
   });
   const url = `https://newsapi.org/v2/top-headlines?country=us&apiKey=${userOptions.newsKey}`;
-  const results = await fetch(url, {method: 'GET', headers: headers})
-      .then((resp) => {
-        return resp.json();
-      });
+  const results = await fetch(url, { method: 'GET', headers: headers })
+    .then((resp) => {
+      return resp.json();
+    });
   newsColumns.innerHTML = '';
-  console.log(results);
 
   results.articles.forEach((element) => {
     const div = document.createElement('div');
@@ -239,7 +217,6 @@ function refreshBackground() {
 
 /** Queries open weather map for weather results */
 async function getWeather() {
-  console.log('Get Weather...');
   const url = new URL('https://api.openweathermap.org/data/2.5/onecall');
   const params = {
     'lat': userOptions.latitude,
@@ -250,9 +227,9 @@ async function getWeather() {
   };
   url.search = new URLSearchParams(params).toString();
   const results = await fetch(url)
-      .then((resp) => {
-        return resp.json();
-      });
+    .then((resp) => {
+      return resp.json();
+    });
   setCurrent(results.current);
   setForecast(results.daily);
   if (results.alerts) {
@@ -349,7 +326,6 @@ function setAlert(alerts) {
   const div = document.getElementById('alerts');
 
   alerts.forEach((element) => {
-    console.log(element.event);
     const title = document.createElement('div');
     const alert = document.createElement('div');
 
@@ -424,7 +400,6 @@ function getDayOfWeek(date, offset) {
 
 /** Switches weather and news display */
 function switchScreens() {
-  console.log('switching screens');
   const weather = document.getElementById('weather');
   const news = document.getElementById('news');
 
