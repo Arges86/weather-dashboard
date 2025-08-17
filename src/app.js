@@ -2,6 +2,10 @@ import './stylesheets/main.css'
 import './stylesheets/bulma.min.css'
 import { ipcRenderer } from 'electron'
 
+/**
+ * @import { Forecast } from "./dt.js"
+ */
+
 /** The object that holds user properties */
 class UserOptions {
   /**
@@ -13,7 +17,7 @@ class UserOptions {
    * @param {string} longitude User's longitude
    * @param {number} cycle Number of minutes to switch screens. Default 2
    */
-  constructor (weatherKey, newsKey, tempUnits, bingMarkets, latitude, longitude, cycle = 2) {
+  constructor(weatherKey, newsKey, tempUnits, bingMarkets, latitude, longitude, cycle = 2) {
     this.weatherKey = weatherKey
     this.tempUnits = tempUnits
     this.bingMarkets = bingMarkets
@@ -24,7 +28,7 @@ class UserOptions {
   }
 
   /** Gets UTF-8 Letterlike Symbols */
-  get unit () {
+  get unit() {
     switch (this.tempUnits) {
       case 'metric':
         return '&#x2103;'
@@ -96,7 +100,7 @@ getSettings()
 setInterval(switchScreens, 1000 * (60 * userOptions.cycle))
 
 /** Gets user settings if they exist and then calls main() */
-async function getSettings () {
+async function getSettings() {
   const temp = await ipcRenderer.invoke('get-settings')
   userOptions = new UserOptions(temp.weatherKey, temp.newsKey, temp.tempUnits,
     temp.bingMarkets, temp.latitude, temp.longitude, temp.cycle)
@@ -115,7 +119,7 @@ async function getSettings () {
 }
 
 /** Main starter function that calls all the others */
-function main () {
+function main() {
   setBackground()
 
   // refreshes background at midnight
@@ -124,6 +128,7 @@ function main () {
   setInterval(getTime, 1000)
 
   getWeather()
+  getForecast()
 
   // refreshes weather every hour
   setInterval(getWeather, 1000 * 60 * 60)
@@ -135,7 +140,7 @@ function main () {
 }
 
 /** Sets the 'settings' to visible and creates event listener */
-function initSettings () {
+function initSettings() {
   inSettings = true
   document.getElementById('weather').style.display = 'none'
   document.getElementById('news').style.display = 'none'
@@ -155,7 +160,7 @@ function initSettings () {
 }
 
 /** Gets the bing daily wallpaper and sets the document background */
-async function setBackground () {
+async function setBackground() {
   const results = await fetch(`https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=${userOptions.bingMarkets}`)
     .then((resp) => {
       return resp.json()
@@ -171,7 +176,7 @@ async function setBackground () {
 }
 
 /** Gets the news and updates the page */
-async function getNews () {
+async function getNews() {
   const newsColumns = document.getElementById('newsColumns')
   const headers = new Headers({
     Accept: 'application/json',
@@ -208,7 +213,7 @@ async function getNews () {
 }
 
 /** Checks if its midnight, and if it is, re-queries Bing */
-function refreshBackground () {
+function refreshBackground() {
   const hour = new Date().getHours()
   if (hour === 0) {
     console.log('Setting new background for the day')
@@ -217,38 +222,55 @@ function refreshBackground () {
 }
 
 /** Queries open weather map for weather results */
-async function getWeather () {
-  const url = new URL('https://api.openweathermap.org/data/2.5/onecall')
-  const params = {
+async function getWeather() {
+  const url = new URL('https://api.openweathermap.org/data/2.5/weather')
+  url.search = new URLSearchParams(getParams()).toString()
+
+  /** @type {CurrentWeather} */
+  const results = await fetch(url)
+    .then((resp) => {
+      return resp.json()
+    })
+  setCurrent(results)
+}
+
+/** Queries open weather map for weather results */
+async function getForecast() {
+  const url = new URL('https://api.openweathermap.org/data/2.5/forecast/daily')
+  const params = getParams();
+  params.cnt = 5;
+  url.search = new URLSearchParams(params).toString()
+
+  /** @type {WeatherForecast} */
+  const results = await fetch(url)
+    .then((resp) => {
+      return resp.json()
+    })
+  setForecast(results.list)
+}
+
+function getParams() {
+  return {
     lat: userOptions.latitude,
     lon: userOptions.longitude,
     exclude: 'minutely',
     units: userOptions.tempUnits,
     appid: userOptions.weatherKey
   }
-  url.search = new URLSearchParams(params).toString()
-  const results = await fetch(url)
-    .then((resp) => {
-      return resp.json()
-    })
-  setCurrent(results.current)
-  setForecast(results.daily)
-  if (results.alerts) {
-    setAlert(results.alerts)
-  }
 }
+
 /**
  * Sets the first row of weather data
- * @param {Object} current The current weather data object
+ * @param {CurrentWeather} current The current weather data object
  */
-function setCurrent (current) {
+function setCurrent(current) {
   document.getElementById('sunrise').innerHTML = ''
   document.getElementById('currentTemp').innerHTML = ''
 
   // Sets sunrise and sunset on left side
   const div = document.createElement('div')
-  const sunrise = new Date(current.sunrise * 1000)
-  const sunset = new Date(current.sunset * 1000)
+  const sunrise = new Date(current.sys.sunrise * 1000)
+  const sunset = new Date(current.sys.sunset * 1000)
   const now = new Date(current.dt * 1000)
   div.innerHTML = `<strong>Sunrise: </strong> ${sunrise.toLocaleString(navigator.language || 'en-US', timeFormat)}`
   div.innerHTML += '<br/>'
@@ -262,7 +284,7 @@ function setCurrent (current) {
 
   // sets current weather on right side
   const div1 = document.createElement('div')
-  div1.innerHTML = `<strong>Temp: </strong> ${current.temp}${userOptions.unit} `
+  div1.innerHTML = `<strong>Temp: </strong> ${current.main.temp} F `
   if (current.weather) {
     const img = document.createElement('img')
     img.src = `https://openweathermap.org/img/wn/${current.weather[0].icon}@2x.png`
@@ -271,38 +293,38 @@ function setCurrent (current) {
     div1.appendChild(img)
   }
   div1.innerHTML += '<br/>'
-  div1.innerHTML += `<strong>Feels Like: </strong> ${current.feels_like}${userOptions.unit}`
+  div1.innerHTML += `<strong>Feels Like: </strong> ${current.main.feels_like} F`
   div1.innerHTML += '<br/>'
-  div1.innerHTML += `<strong>Humidity: </strong> ${current.humidity}%`
+  div1.innerHTML += `<strong>Humidity: </strong> ${current.main.humidity}%`
   div1.innerHTML += '<br/>'
-  div1.innerHTML += `<strong>Wind: </strong> ${getCardinalDirection(current.wind_deg)} @ ${current.wind_speed} mph`
+  div1.innerHTML += `<strong>Wind: </strong> ${getCardinalDirection(current.wind.deg)} @ ${current.wind.speed} mph`
   div1.setAttribute('class', 'background')
   document.getElementById('currentTemp').appendChild(div1)
 }
 
 /**
  * Sets the second row of weather data
- * @param {Array<object>} daily The list of dail forecasts
+ * @param {Array<WeatherList>} daily The list of daily forecasts
  */
-function setForecast (daily) {
+function setForecast(daily) {
   const forecast = document.getElementById('5day')
   forecast.innerHTML = ''
-  const n = 5
 
-  for (let index = 0; index < n; index++) {
-    const element = daily[index]
+  daily.forEach((element, i) => {
 
     // sets named ay of week
     const div = document.createElement('div')
-    const day = getDayOfWeek(new Date(), index)
+    const day = getDayOfWeek(new Date(), i)
     const title = document.createElement('div')
     title.setAttribute('class', 'forecastTitle')
     title.innerText = day
     div.appendChild(title)
 
+
     // sets body of forecast
     const body = document.createElement('div')
-    body.innerHTML = `${element.temp.min.toFixed(1)}&#xb0;/${element.temp.max.toFixed(1)} ${userOptions.unit} `
+    body.innerHTML = `${element.temp.min.toFixed(1)}&#xb0;/${element.temp.max.toFixed(1)}  F `
+    body.innerHTML += `<div class="is-size-5">Humidy ${element.humidity}%</div>`
     if (element.weather) {
       const img = document.createElement('img')
       img.src = `https://openweathermap.org/img/wn/${element.weather[0].icon}@2x.png`
@@ -311,37 +333,14 @@ function setForecast (daily) {
       body.appendChild(img)
     }
     body.innerHTML += '<br/>'
-    body.innerHTML += `${Math.round(element.pop * 100)}%`
+    const rain = element.rain ? `<br/>Rain ${element.rain} mm` : ''
+    const snow = element.snow ? `<br/>Rain ${element.snow} mm` : ''
+    body.innerHTML += `<div class="is-size-5">Percipitation ${Math.round(element.pop * 100)}% ${rain} ${snow}</div>`
     div.appendChild(body)
 
     div.setAttribute('class', 'column background seperator has-text-centered')
     forecast.appendChild(div)
-  }
-}
-
-/**
- * Sets the allerts to the bottom of the page
- * @param {Array<object>} alerts List of Alerts
- */
-function setAlert (alerts) {
-  const div = document.getElementById('alerts')
-
-  alerts.forEach((element) => {
-    const title = document.createElement('div')
-    const alert = document.createElement('div')
-
-    title.setAttribute('class', 'forecastTitle')
-    title.innerText = element.event
-    alert.appendChild(title)
-
-    const body = document.createElement('div')
-    body.innerHTML = element.description
-    body.setAttribute('class', 'is-size-6')
-    alert.appendChild(body)
-
-    alert.setAttribute('class', 'column background seperator')
-    div.appendChild(alert)
-  })
+  });
 }
 
 /**
@@ -349,7 +348,7 @@ function setAlert (alerts) {
  * @param {number} data Time in millisconds
  * @return {string} Time in hours and minutes
  */
-function timeConvert (data) {
+function timeConvert(data) {
   const num = data / 1000
   const hours = Math.floor(num / 60 / 60)
   const minutes = num % 60
@@ -357,7 +356,7 @@ function timeConvert (data) {
 }
 
 /** Gets the current time and updates the #clock */
-function getTime () {
+function getTime() {
   const clock = document.querySelector('#clock')
   const time = new Date()
   clock.textContent = time.toLocaleString(navigator.language || 'en-US', timeFormat)
@@ -368,7 +367,7 @@ function getTime () {
  * @param {number} angle Directional Angle
  * @return {string}
  */
-function getCardinalDirection (angle) {
+function getCardinalDirection(angle) {
   const directions = ['↑ N', '↗ NE', '→ E', '↘ SE', '↓ S', '↙ SW', '← W', '↖ NW']
   return directions[Math.round(angle / 45) % 8]
 }
@@ -379,7 +378,7 @@ function getCardinalDirection (angle) {
  * @param {number} offset The number of days it is from today
  * @return {string}
  */
-function getDayOfWeek (date, offset) {
+function getDayOfWeek(date, offset) {
   const weekday = new Array(12)
   weekday[0] = 'Sunday'
   weekday[1] = 'Monday'
@@ -400,7 +399,7 @@ function getDayOfWeek (date, offset) {
 }
 
 /** Switches weather and news display */
-function switchScreens () {
+function switchScreens() {
   const weather = document.getElementById('weather')
   const news = document.getElementById('news')
 
