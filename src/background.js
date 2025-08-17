@@ -106,14 +106,14 @@ ipcMain.on('show-context-menu', (event) => {
     {
       label: 'Update Settings',
       click: () => {
-        event.sender.send('context-menu-command', 'menu-item-1')
+        event.sender.send('context-menu-command', 'menu-item-1');
       },
     }
-  ]
-  const menu = Menu.buildFromTemplate(template)
-  menu.popup(BrowserWindow.fromWebContents(event.sender))
+  ];
+  const menu = Menu.buildFromTemplate(template);
+  menu.popup(BrowserWindow.fromWebContents(event.sender));
 });
 
 ipcMain.handle('reload-window', () => {
   mainWindow.reload();
-})
+});
